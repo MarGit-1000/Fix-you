@@ -12,26 +12,21 @@ for (let n = 0; n <= 0xff; ++n) {
 }
 
 function hexStringToArrayBuffer(pos, hexString) {
-    // remove the space
     hexString = hexString.replace(/ /g, '');
-    if (hexString.length % 2 != 0) {
+    
+    // Validasi panjang string hex
+    if (hexString.length % 2 !== 0) {
         throw new Error('Invalid hex string length');
     }
-
-    // check for some non-hex characters
-    var bad = hexString.match(/[G-Z\s]/i);
-    if (bad) {
+    
+    // Validasi karakter hex
+    if (!/^[0-9A-F]*$/i.test(hexString)) {
         throw new Error('Invalid hex characters found');
     }
-
-    // convert the octets to integers
-    const bytes = hexString.match(/[\dA-F]{2}/gi);
-    if (!bytes) {
-        throw new Error('Invalid hex string format');
-    }
-
-    for (let i = 0; i < bytes.length; i++) {
-        encoded_buffer_file[pos + i] = parseInt(bytes[i], 16);
+    
+    // Konversi hex ke bytes
+    for (let i = 0; i < hexString.length; i += 2) {
+        encoded_buffer_file[pos + (i/2)] = parseInt(hexString.substr(i, 2), 16);
     }
 }
 function write_buffer_number(pos, len, value) {
@@ -115,9 +110,14 @@ const saveData = function (data, fileName) {
 
 
 function write_buffer_string(pos, len, value, using_key, item_id) {
+    if (!value) return; // Prevent undefined value
+    
     for (let a = 0; a < len; a++) {
-        if (using_key) encoded_buffer_file[pos + a] = value.charCodeAt(a) ^ (items_secret_key.charCodeAt((a + item_id) % items_secret_key.length))
-        else encoded_buffer_file[pos + a] = value.charCodeAt(a)
+        if (using_key) {
+            encoded_buffer_file[pos + a] = value.charCodeAt(a) ^ items_secret_key.charCodeAt((a + item_id) % items_secret_key.length);
+        } else {
+            encoded_buffer_file[pos + a] = value.charCodeAt(a);
+        }
     }
 }
 
