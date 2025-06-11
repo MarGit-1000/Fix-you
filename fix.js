@@ -42,15 +42,25 @@ function hex(arrayBuffer, is_without_space) {
         hexOctets.push(byteToHex[buff[i]]);
     return hexOctets.join(is_without_space ? "" : " ");
 }
+
+function validateBufferSize(buffer) {
+    // Find the last non-zero element
+    let lastIndex = buffer.length - 1;
+    while (lastIndex >= 0 && buffer[lastIndex] === 0) {
+        lastIndex--;
+    }
+    
+    // Trim buffer to actual size
+    return buffer.slice(0, lastIndex + 1);
+}
 var saveDataBuffer = (function () {
     var a = document.createElement('a');
     a.style = "display: none";
     document.body.appendChild(a);
     
     return function (data, fileName) {
-        // Hanya menggunakan data yang valid (menghindari buffer kosong)
-        const actualLength = data.findIndex(val => val === undefined);
-        const validData = actualLength === -1 ? data : data.slice(0, actualLength);
+        // Validate and trim buffer before saving
+        const validData = validateBufferSize(data);
         
         const blob = new Blob([new Uint8Array(validData)], { type: "octet/stream" });
         const url = window.URL.createObjectURL(blob);
