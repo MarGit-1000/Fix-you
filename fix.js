@@ -10,21 +10,30 @@ function check_last_char(dest, src) {
 for (let n = 0; n <= 0xff; ++n) {
     byteToHex[n] = n.toString(16).padStart(2, "0");
 }
-function hexStringToArrayBuffer(pos, hexString) { //https://gist.github.com/don/871170d88cf6b9007f7663fdbc23fe09
+var encoded_buffer_file = [];
+
+function hexStringToArrayBuffer(pos, hexString) {
     // remove the space
     hexString = hexString.replace(/ /g, '');
-    if (hexString.length % 2 != 0) console.log('WARNING: expecting an even number of characters in the hexString');
+    if (hexString.length % 2 != 0) {
+        throw new Error('Invalid hex string length');
+    }
 
     // check for some non-hex characters
     var bad = hexString.match(/[G-Z\s]/i);
-    if (bad) console.log('WARNING: found non-hex characters', bad);
+    if (bad) {
+        throw new Error('Invalid hex characters found');
+    }
 
     // convert the octets to integers
-    var integers = hexString.match(/[\dA-F]{2}/gi).map(function (s) {
-        encoded_buffer_file[pos++] = parseInt(s, 16)
-    });
+    const bytes = hexString.match(/[\dA-F]{2}/gi);
+    if (!bytes) {
+        throw new Error('Invalid hex string format');
+    }
 
-    return integers
+    for (let i = 0; i < bytes.length; i++) {
+        encoded_buffer_file[pos + i] = parseInt(bytes[i], 16);
+    }
 }
 function write_buffer_number(pos, len, value) {
     for (let a = 0; a < len; a++) {
