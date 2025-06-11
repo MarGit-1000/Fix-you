@@ -494,28 +494,34 @@ function process_item_encoder(result, using_txt) {
  */
 
 function item_encoder(file, using_editor) {
+    // Reset buffer sebelum memulai encoding
+    encoded_buffer_file = [];
+
     if (using_editor) {
         process_item_encoder(data_json, 0);
-        saveDataBuffer(encoded_buffer_file, "items.dat")
-        hash_buffer(encoded_buffer_file, "items_dat_hash_2", "Encoded Items dat Hash: ")
-        return encoded_buffer_file = []
-    } else {
-        var reader = new FileReader();
-        reader.readAsText(file);
-
-        reader.onload = function (e) {
-            try {
-                if (document.getElementById("using_txt_mode").checked) process_item_encoder(e.target.result, 1)
-                else process_item_encoder(JSON.parse(e.target.result), 0)
-                saveDataBuffer(encoded_buffer_file, "items.dat")
-
-                hash_buffer(encoded_buffer_file, "items_dat_hash_1", "Encoded Items dat Hash: ")
-                return encoded_buffer_file = []
-            } catch (error) {
-                console.error('Error parsing JSON:', error);
-            }
-        }
+        saveDataBuffer(encoded_buffer_file, "items.dat");
+        hash_buffer(encoded_buffer_file, "items_dat_hash_2", "Encoded Items dat Hash: ");
+        encoded_buffer_file = []; // Clear buffer setelah selesai
+        return;
     }
+
+    var reader = new FileReader();
+    reader.readAsText(file);
+
+    reader.onload = function (e) {
+        try {
+            if (document.getElementById("using_txt_mode").checked) {
+                process_item_encoder(e.target.result, 1);
+            } else {
+                process_item_encoder(JSON.parse(e.target.result), 0);
+            }
+            saveDataBuffer(encoded_buffer_file, "items.dat");
+            hash_buffer(encoded_buffer_file, "items_dat_hash_1", "Encoded Items dat Hash: ");
+            encoded_buffer_file = []; // Clear buffer setelah selesai
+        } catch (error) {
+            console.error('Error parsing JSON:', error);
+        }
+    };
 }
 
 /**
