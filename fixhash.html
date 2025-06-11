@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache Hash Checker & File Manager</title>
+    <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #000;
+        color: #fff;
+        min-height: 100vh;
+    }
+
+    .container {
+        background: #111;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05);
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .header h1,
+    .header p,
+    h3,
+    p {
+        color: #fff;
+    }
+
+    .upload-section {
+        border: 3px dashed #666;
+        padding: 30px;
+        text-align: center;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        background-color: #0d0d0d;
+    }
+
+    .upload-section:hover {
+        border-color: #aaa;
+        background: #1a1a1a;
+    }
+
+    .upload-section input[type="file"] {
+        margin: 10px 0;
+        padding: 10px;
+        border: 2px solid #555;
+        border-radius: 5px;
+        width: 200px;
+        background: #000;
+        color: #fff;
+    }
+
+    .btn {
+        background: #222;
+        color: #fff;
+        border: 1px solid #444;
+        padding: 12px 25px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: bold;
+        margin: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        background: #333;
+        transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+        background: #444;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .apes {
+        background: #222;
+        color: #fff;
+        border: 1px solid #444;
+        padding: 12px 25px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: bold;
+        margin: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .apes:hover {
+        background: #333;
+        transform: translateY(-2px);
+    }
+
+    .apes:disabled {
+        background: #444;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-danger {
+        background: #550000;
+        border: 1px solid #aa0000;
+    }
+
+    .btn-success {
+        background: #005500;
+        border: 1px solid #00aa00;
+    }
+
+    .progress-container {
+        margin: 20px 0;
+        display: none;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 25px;
+        background: #222;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #555;
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 15px;
+    }
+
+    .progress-text {
+        text-align: center;
+        margin-top: 10px;
+        font-weight: bold;
+        color: #fff;
+    }
+
+    .file-manager {
+        font-family: 'Courier New', monospace;
+        margin-top: 20px;
+        border: 2px solid #444;
+        border-radius: 10px;
+        padding: 20px;
+        height: 400px;
+        overflow-y: auto;
+        background: #111;
+        color: #fff;
+        display: none;
+    }
+
+    .file-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 5px;
+        margin: 2px 0;
+        transition: all 0.2s ease;
+    }
+
+    .file-item:hover {
+        background: #222;
+    }
+
+    .console-container {
+        margin-top: 20px;
+        display: none;
+    }
+
+    .console-log {
+        background: #000;
+        color: #0f0;
+        padding: 15px;
+        border-radius: 8px;
+        height: 200px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .log-missing { color: #f00; }
+    .log-success { color: #0f0; }
+    .log-finished { color: #fff700; }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-content {
+        background-color: #111;
+        color: #fff;
+        margin: 5% auto;
+        padding: 20px;
+        border-radius: 10px;
+        width: 80%;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .close {
+        color: #888;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover {
+        color: #fff;
+    }
+
+    .error-message {
+        background: #550000;
+        color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        display: none;
+    }
+
+    .success-message {
+        background: #005500;
+        color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        display: none;
+    }
+
+    .button-group {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .stats {
+        background: #111;
+        color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        display: none;
+    }
+         .btns {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      background-color: var(--accent-blue);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btns:hover {
+      background-color: #357bd8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btns:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+    footer {
+      margin-top: 0%;
+      font-size: 0.875rem;
+      color: #777;
+      text-align: center;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.5rem;
+      width: 100%;
+      max-width: 42rem;
+    }
+</style>
+</head>
+<body>
+	<a href="../index.html">
+	<button class="btn">← Back</button>
+	</a>
+    <div class="container">
+        <div class="header">
+            <h1>🔧<br> Cache Hash Checker</h1>
+            <p>Upload cache.zip untuk melakukan validasi dan perbaikan hash file</p>
+        </div>
+        
+        <div class="upload-section">
+            <h3>📁 Upload Cache.zip File</h3>
+            <p>File harus bernama cache.zip dan berisi items.dat<br>[cache.zip harus huruf kecil semua, jika tidak akan terjadi bug]</p>
+            <input class="iput" type="file" id="zipInput" accept=".zip" />
+            <br>
+            <button class="btn" id="clearDB">🗑️ Clear Storage</button>
+        </div>
+        
+        <div class="error-message" id="errorMsg"></div>
+        <div class="success-message" id="successMsg"></div>
+        
+        <div class="progress-container" id="uploadProgress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="uploadProgressFill"></div>
+            </div>
+            <div class="progress-text" id="uploadProgressText">Extracting cache.zip...</div>
+        </div>
+        
+        <div class="button-group" id="actionButtons" style="display: none;">
+            <button class="btn btn-success" id="viewFilesBtn">📂 Lihat Hasil Unzip</button>
+            <button class="btn" id="decodeBtn">🔓 Decode items.dat to items.json</button>
+        </div>
+        
+        <div class="progress-container" id="decodeProgress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="decodeProgressFill"></div>
+            </div>
+            <div class="progress-text" id="decodeProgressText">Decoding items.dat...</div>
+        </div>
+        
+        <div class="button-group" id="processButtons" style="display: none;">
+            <button class="btn btn-success" id="startProcessBtn">🚀 Mulai Proses</button>
+        </div>
+        
+        <div class="progress-container" id="hashProgress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="hashProgressFill"></div>
+            </div>
+            <div class="progress-text" id="hashProgressText">Checking and fixing hashes...</div>
+        </div>
+        
+        <div class="console-container" id="consoleContainer">
+            <h4>📋 Console Log</h4>
+            <div class="console-log" id="consoleLog"></div>
+        </div>
+        
+        <div class="stats" id="statsContainer">
+            <h4>📊 Statistics</h4>
+            <div id="statsContent"></div>
+        </div>
+        
+        <div class="button-group" id="finalButtons" style="display: none;">
+            <button class="btn btn-success" id="downloadJsonBtn">⬇️ Download items.json.<br></button>
+            <!--<a href="../index.html">-->
+            <button class="btn" id="convertToDatBtn">🔄 Ubah items.json ke items.dat (Recommended)</button>
+            <!--</a>-->
+            <button class="btn btn-danger" id="resetAllBtn">🔄 Reset All Progress<br></button>
+            <div class="progress-container" id="encodeProgress" style="display: none;">
+    <div class="progress-bar">
+        <div class="progress-fill" id="encodeProgressFill"></div>
+    </div>
+    <div class="progress-text" id="encodeProgressText">Encoding items.json...</div>
+</div>
+
+        </div>
+        
+        <!-- File Manager Modal -->
+        <div id="fileManagerModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeModal">&times;</span>
+                <h3>📁 File Manager</h3>
+                <button class="btn" id="backBtn" style="display:none;">⬅️ Back</button>
+                <div class="file-manager" id="fileManager" style="display: block;"></div>
+            </div>
+        </div>
+          <footer>
+          	&copy;Fly <span id="year">2025</span>
+          	<br>
+    File Hash Generator &copy; GuckTubeYT</footer>
+    </div>
+    <!-- External Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+    <script src="test.js"></script>
+    
+    <script>
+
+
+        // Global variables
+        let globalDB = null;
+        let currentPath = "cache/";
+        let itemsJsonData = null;
+        let fixedHashCount = { texture: 0, extra: 0 };
+        
+        // IndexedDB helpers
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("CacheDB", 1);
+                request.onerror = e => reject(e.target.error);
+                request.onsuccess = e => resolve(e.target.result);
+                request.onupgradeneeded = e => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains("files")) {
+                        db.createObjectStore("files", { keyPath: "name" });
+                    }
+                };
+            });
+        }
+
+        function saveFile(db, name, blob) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("files", "readwrite");
+                const store = tx.objectStore("files");
+                store.put({ name, blob });
+                tx.oncomplete = () => resolve();
+                tx.onerror = e => reject(e.target.error);
+            });
+        }
+
+        function getFile(db, name) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("files", "readonly");
+                const store = tx.objectStore("files");
+                const request = store.get(name);
+                request.onsuccess = e => resolve(e.target.result);
+                request.onerror = e => reject(e.target.error);
+            });
+        }
+
+        function getAllFiles(db) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("files", "readonly");
+                const store = tx.objectStore("files");
+                const request = store.getAll();
+                request.onsuccess = e => resolve(e.target.result);
+                request.onerror = e => reject(e.target.error);
+            });
+        }
+
+        function clearDB() {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction("files", "readwrite");
+                    const store = tx.objectStore("files");
+                    const req = store.clear();
+                    req.onsuccess = () => resolve();
+                    req.onerror = e => reject(e.target.error);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
+        // Utility functions
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            setTimeout(() => errorMsg.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const successMsg = document.getElementById('successMsg');
+            successMsg.textContent = message;
+            successMsg.style.display = 'block';
+            setTimeout(() => successMsg.style.display = 'none', 3000);
+        }
+
+        function updateProgress(elementId, percent, text) {
+            const fillElement = document.getElementById(elementId + 'Fill');
+            const textElement = document.getElementById(elementId + 'Text');
+            const container = document.getElementById(elementId.replace('Progress', '') + 'Progress');
+            
+            container.style.display = 'block';
+            fillElement.style.width = percent + '%';
+            textElement.textContent = text;
+            
+            if (percent >= 100) {
+                setTimeout(() => {
+                    container.style.display = 'none';
+                }, 2000);
+            }
+        }
+
+        function logToConsole(message, type = 'normal') {
+            const consoleLog = document.getElementById('consoleLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            
+            logEntry.className = type === 'missing' ? 'log-missing' : 
+                                type === 'success' ? 'log-success' : 
+                                type === 'finished' ? 'log-finished' : '';
+            
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            consoleLog.appendChild(logEntry);
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+
+        // File validation
+        function validateCacheFile(file) {
+            const fileName = file.name.toLowerCase();
+            return fileName === 'cache.zip';
+        }
+
+      async function unzipAndStore(file) {
+    const jszip = new JSZip();
+    try {
+        const zip = await jszip.loadAsync(file);
+        const db = await openDB();
+        
+        const files = Object.keys(zip.files).filter(name => !zip.files[name].dir);
+        if (files.length === 0) {
+            throw new Error('ZIP file is empty');
+        }
+        
+        // Check if items.dat exists
+        const hasItemsDat = files.some(name => name.toLowerCase() === 'cache/items.dat');
+        if (!hasItemsDat) {
+            throw new Error('items.dat not found in cache.zip');
+        }
+
+        const totalFiles = files.length;
+        let processedFiles = 0;
+        
+        for (const relativePath of files) {
+            const zipEntry = zip.files[relativePath];
+            const blob = await zipEntry.async("blob");
+            await saveFile(db, relativePath, blob);
+            
+            processedFiles++;
+            updateProgress('uploadProgress', (processedFiles / totalFiles) * 100, 
+                `Extracting... ${processedFiles}/${totalFiles} files`);
+        }
+        
+        return db;
+    } catch (error) {
+        console.error('Error in unzipAndStore:', error);
+        throw error; // Re-throw untuk ditangkap oleh caller
+    }
+}
+
+
+        // File manager functions
+        async function getFilesInPath(db, path) {
+            const files = await getAllFiles(db);
+            const folderSet = new Set();
+            const fileList = [];
+
+            for (const file of files) {
+                if (!file.name.startsWith(path)) continue;
+                let subPath = file.name.substring(path.length);
+                if (subPath === "") continue;
+
+                let slashIndex = subPath.indexOf("/");
+                if (slashIndex === -1) {
+                    fileList.push({ name: subPath, isFolder: false, fullPath: file.name });
+                } else {
+                    const folderName = subPath.substring(0, slashIndex);
+                    folderSet.add(folderName);
+                }
+            }
+
+            const folderList = Array.from(folderSet).map(f => ({ name: f, isFolder: true }));
+            return [...folderList, ...fileList].sort((a,b) => {
+                if (a.isFolder && !b.isFolder) return -1;
+                if (!a.isFolder && b.isFolder) return 1;
+                return a.name.localeCompare(b.name);
+            });
+        }
+
+        async function renderFileManager(db) {
+            const fm = document.getElementById("fileManager");
+            const files = await getFilesInPath(db, currentPath);
+            const backBtn = document.getElementById("backBtn");
+
+            backBtn.style.display = currentPath === "" ? "none" : "inline-block";
+
+            if (files.length === 0) {
+                fm.innerHTML = "<i>Folder kosong</i>";
+                return;
+            }
+
+            fm.innerHTML = "";
+            files.forEach(file => {
+                const div = document.createElement("div");
+                div.className = "file-item";
+
+                if (file.isFolder) {
+                    div.innerHTML = `📁 <b>${file.name}</b>`;
+                    div.onclick = () => {
+                        currentPath += file.name + "/";
+                        renderFileManager(db);
+                    };
+                } else {
+                    div.innerHTML = `📄 ${file.name}`;
+                    div.onclick = () => {
+                        showSuccess(`File: ${currentPath + file.name}`);
+                    };
+                }
+
+                fm.appendChild(div);
+            });
+        }
+
+        // Hash calculation function
+        function calculateFileHash(arrayBuffer) {
+            let hash = 0x55555555;
+            const bytes = new Uint8Array(arrayBuffer);
+            for (let i = 0; i < bytes.length; i++) {
+                hash = (hash >>> 27) + (hash << 5) + bytes[i];
+            }
+            return hash;
+        }
+
+        // Process items.json and fix hashes
+        async function processItemsJson() {
+    if (!itemsJsonData) {
+        showError('items.json data is not available');
+        return;
+    }
+
+    const consoleContainer = document.getElementById('consoleContainer');
+    consoleContainer.style.display = 'block';
+
+    logToConsole('Starting hash check and fix process...', 'normal');
+
+    const totalItems = itemsJsonData.items.length;
+    let processedItems = 0;
+    fixedHashCount = { texture: 0, extra: 0 };
+
+    // Store paths of missing files to avoid duplicate logs
+    const missingFilesSet = new Set();
+
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    for (let i = 0; i < totalItems; i++) {
+        const item = itemsJsonData.items[i];
+        const itemId = i + 1;
+        const itemName = item.name || 'No name';
+
+        // Check texture hash
+        if (item.texture && item.texture !== '') {
+            try {
+                const texturePathInDB = 'cache/game/' + item.texture;
+                const fileData = await getFile(globalDB, texturePathInDB);
+                if (fileData) {
+                    const arrayBuffer = await fileData.blob.arrayBuffer();
+                    const actualHash = calculateFileHash(arrayBuffer);
+
+                    if (actualHash !== item.texture_hash) {
+                        logToConsole(`[INCORRECT] ${itemName}, Texture Hash: ${item.texture_hash} is incorrect! PATH : ${texturePathInDB}`, 'warning');
+                        item.texture_hash = actualHash;
+                        logToConsole(`[FIXING] ${itemName}, New Texture Hash: ${actualHash} successfully updated`, 'success');
+                        fixedHashCount.texture++;
+                    }
+                    // No log if hash is correct
+                } else {
+                    missingFilesSet.add(`[ITEMID ${itemId}] Texture, Not Found: ${texturePathInDB}`);
+                }
+            } catch (error) {
+                // Optionally log read error if needed
+                // logToConsole(`[ERROR] Reading texture file ${item.texture}: ${error.message}`, 'error');
+            }
+        }
+
+        // Delay before extra file check
+        
+
+        // Check extra file hash
+        if (item.extra_file && item.extra_file !== '') {
+            try {
+                const extraFilePathInDB = 'cache/' + item.extra_file;
+                const fileData = await getFile(globalDB, extraFilePathInDB);
+                if (fileData) {
+                    const arrayBuffer = await fileData.blob.arrayBuffer();
+                    const actualHash = calculateFileHash(arrayBuffer);
+
+                    if (actualHash !== item.extra_file_hash) {
+                        logToConsole(`[INCORRECT] ${itemName}, Extra File Hash: ${item.extra_file_hash} is incorrect! PATH : ${extraFilePathInDB}`, 'warning');
+                        item.extra_file_hash = actualHash;
+                        logToConsole(`[FIXING] ${itemName}, New Extra File Hash: ${actualHash} successfully updated`, 'success');
+                        fixedHashCount.extra++;
+                    }
+                    // No log if hash is correct
+                } else {
+                    missingFilesSet.add(`[ITEMID ${itemId}] Extra File, Not Found: ${extraFilePathInDB}`);
+                }
+            } catch (error) {
+                // logToConsole(`[ERROR] Reading extra file ${item.extra_file}: ${error.message}`, 'error');
+            }
+        }
+
+        // Delay before next item (except last)
+        
+
+        processedItems++;
+        updateProgress('hashProgress', (processedItems / totalItems) * 100,
+            `Processing... ${processedItems}/${totalItems} items`);
+    }
+
+    const totalFixed = fixedHashCount.texture + fixedHashCount.extra;
+    logToConsole(`[DONE] Successfully fixed ${totalFixed} incorrect hashes. [Texture: ${fixedHashCount.texture}] [Extra: ${fixedHashCount.extra}]`, 'finished');
+
+    // Show stats
+    const statsContainer = document.getElementById('statsContainer');
+    const statsContent = document.getElementById('statsContent');
+    statsContent.innerHTML = `
+        <p><strong>Total Items Processed:</strong> ${totalItems}</p>
+        <p><strong>Texture Hashes Fixed:</strong> ${fixedHashCount.texture}</p>
+        <p><strong>Extra File Hashes Fixed:</strong> ${fixedHashCount.extra}</p>
+        <p><strong>Total Fixes:</strong> ${totalFixed}</p>
+    `;
+    statsContainer.style.display = 'block';
+
+    document.getElementById('finalButtons').style.display = 'block';
+}
+
+
+        // Download corrected items.json
+        function downloadItemsJson() {
+            if (!itemsJsonData) {
+                showError('Tidak ada data items.json untuk didownload');
+                return;
+            }
+
+            const jsonString = JSON.stringify(itemsJsonData, null, 4);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'items.json';
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            showSuccess('items.json berhasil didownload!');
+        }
+
+        // Reset all progress
+        function resetAllProgress() {
+    // Clear variables
+    globalDB = null;
+    currentPath = "";
+    itemsJsonData = null;
+    fixedHashCount = { texture: 0, extra: 0 };
+    
+    // Hide all sections
+    document.getElementById('actionButtons').style.display = 'none';
+    document.getElementById('processButtons').style.display = 'none';
+    document.getElementById('finalButtons').style.display = 'none';
+    document.getElementById('consoleContainer').style.display = 'none';
+    document.getElementById('statsContainer').style.display = 'none';
+    
+    // Reset button states
+    document.getElementById('decodeBtn').disabled = false;
+    document.getElementById('startProcessBtn').disabled = false;
+    
+    // Clear console
+    document.getElementById('consoleLog').innerHTML = '';
+    
+    // Reset file input
+    document.getElementById('zipInput').value = '';
+    
+    showSuccess('Progress berhasil direset!');
+}
+
+        // Event listeners
+        document.getElementById('zipInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!validateCacheFile(file)) {
+        showError('File harus bernama cache.zip (case insensitive)');
+        return;
+    }
+
+    try {
+        updateProgress('uploadProgress', 0, 'Starting extraction...');
+        globalDB = await unzipAndStore(file);
+        updateProgress('uploadProgress', 100, 'Extraction completed!');
+        showSuccess('Cache.zip berhasil diekstrak!');
+        document.getElementById('actionButtons').style.display = 'block';
+    } catch (error) {
+        showError(error.message);
+    }
+});
+
+
+        document.getElementById('clearDB').addEventListener('click', async () => {
+            try {
+                await clearDB();
+                resetAllProgress();
+                showSuccess('Storage berhasil dibersihkan!');
+            } catch (error) {
+                showError('Gagal membersihkan storage: ' + error.message);
+            }
+        });
+
+        document.getElementById('viewFilesBtn').addEventListener('click', async () => {
+            currentPath = "";
+            await renderFileManager(globalDB);
+            document.getElementById('fileManagerModal').style.display = 'block';
+        });
+        
+        document.getElementById('convertToDatBtn').addEventListener('click', () => {
+    encodeItemsJson(); // Langsung panggil fungsi encode
+});
+
+        document.getElementById('decodeBtn').addEventListener('click', async () => {
+    try {
+        updateProgress('decodeProgress', 0, 'Checking items.dat...');
+        
+        const itemsDatFile = await getFile(globalDB, 'cache/items.dat');
+        if (!itemsDatFile) {
+            throw new Error('items.dat not found in extracted files');
+        }
+
+        updateProgress('decodeProgress', 30, 'Reading items.dat...');
+        const file = new File([itemsDatFile.blob], 'cache/items.dat');
+        console.log('Start decoding items.dat...');
+        
+        await new Promise((resolve, reject) => {
+            const originalSaveData = window.saveData;
+
+            window.saveData = function(data, fileName) {
+                try {
+                    itemsJsonData = JSON.parse(data);
+                    updateProgress('decodeProgress', 100, 'Decoding completed!');
+                    showSuccess('items.dat successfully decoded to items.json!');
+                    document.getElementById('processButtons').style.display = 'block';
+                    document.getElementById('decodeBtn').disabled = true; // Disable button
+                    resolve();
+                } catch (error) {
+                    reject(new Error('Failed to parse decoded data'));
+                } finally {
+                    window.saveData = originalSaveData;
+                }
+            };
+
+            item_decoder(file).catch(error => {
+                reject(new Error('Decoder failed: ' + error.message));
+            });
+        });
+        
+    } catch (error) {
+        console.error('Decode error:', error);
+        showError('Failed to decode items.dat: ' + error.message);
+        updateProgress('decodeProgress', 0, 'Decoding failed');
+    }
+});
+
+
+        document.getElementById('startProcessBtn').addEventListener('click', async () => {
+            await processItemsJson();
+        });
+
+        document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+            downloadItemsJson();
+        });
+
+        document.getElementById('convertToDatBtn').addEventListener('click', () => {
+            showSuccess('Fitur convert ke .dat akan segera tersedia!');
+        });
+
+        document.getElementById('resetAllBtn').addEventListener('click', () => {
+            if (confirm('Apakah Anda yakin ingin mereset semua progress?')) {
+                resetAllProgress();
+            }
+        });
+
+        // Modal event listeners
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('fileManagerModal').style.display = 'none';
+        });
+
+        document.getElementById('backBtn').addEventListener('click', async () => {
+            if (currentPath === "") return;
+            const parts = currentPath.split("/").filter(Boolean);
+            parts.pop();
+            currentPath = parts.length > 0 ? parts.join("/") + "/" : "";
+            await renderFileManager(globalDB);
+        });
+
+        // Initialize
+        (async () => {
+            try {
+                globalDB = await openDB();
+            } catch (error) {
+                showError('Gagal membuka IndexedDB: ' + error.message);
+            }
+        })();
+        function showDownloadButton() {
+    const downloadBtn = document.createElement('button');
+    downloadBtn.className = 'btn btn-success';
+    downloadBtn.id = 'downloadDatBtn';
+    downloadBtn.textContent = '⬇️ Download new items.dat';
+    downloadBtn.addEventListener('click', () => {
+        downloadItemsDat();
+    });
+
+    const finalButtons = document.getElementById('finalButtons');
+    finalButtons.appendChild(downloadBtn);
+    finalButtons.style.display = 'block';
+}
+
+function updateEncodeProgress(percent, text) {
+    const fillElement = document.getElementById('encodeProgressFill');
+    const textElement = document.getElementById('encodeProgressText');
+    const container = document.getElementById('encodeProgress');
+
+    container.style.display = 'block';
+    fillElement.style.width = percent + '%';
+    textElement.textContent = text;
+
+    if (percent >= 100) {
+        setTimeout(() => {
+            container.style.display = 'none';
+        }, 2000);
+    }
+}
+async function encodeItemsJson() {
+    if (!itemsJsonData) {
+        showError('items.json data is not available');
+        return;
+    }
+
+    try {
+        const consoleContainer = document.getElementById('consoleContainer');
+        consoleContainer.style.display = 'block';
+
+        logToConsole('Starting encoding process...', 'normal');
+        updateEncodeProgress(10, 'Initializing encoding...');
+
+        // Check if encoder functions are available
+        if (typeof process_item_encoder === 'undefined' || typeof encoded_buffer_file === 'undefined') {
+            throw new Error('Encoder functions not available. Make sure fix.js is loaded properly.');
+        }
+
+        updateEncodeProgress(30, 'Processing items...');
+
+        // Initialize encoded buffer if not exists
+        if (!encoded_buffer_file) {
+            encoded_buffer_file = new Uint8Array(1024 * 1024);
+        }
+
+        updateEncodeProgress(50, 'Encoding items data...');
+
+        // Encode items
+        process_item_encoder(itemsJsonData, 0);
+
+        updateEncodeProgress(80, 'Finalizing encoding...');
+
+        // Create blob and download
+        const blob = new Blob([encoded_buffer_file], { type: 'application/octet-binary' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'items.dat';
+        a.click();
+
+        URL.revokeObjectURL(url);
+        
+        updateEncodeProgress(100, 'Encoding completed!');
+        showSuccess('items.dat successfully encoded and downloaded!');
+        logToConsole('Encoding process completed successfully!', 'success');
+
+    } catch (error) {
+        console.error('Encode error:', error);
+        showError('Failed to encode items.json: ' + error.message);
+        logToConsole('Encoding failed: ' + error.message, 'missing');
+        updateEncodeProgress(0, 'Encoding failed');
+    }
+}
+
+    </script>
+</body>
+</html>
