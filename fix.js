@@ -114,7 +114,11 @@ function write_buffer_string(pos, len, value, using_key, item_id) {
 }
 
 function process_item_encoder(result, using_txt) {
+    // Reset buffer di awal untuk memastikan bersih
+    encoded_buffer_file = [];
     var mem_pos = 6;
+    
+    // Sisa kode tetap sama...
 
     if (using_txt) {
         var version = 0;
