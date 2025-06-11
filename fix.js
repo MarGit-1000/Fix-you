@@ -10,7 +10,6 @@ function check_last_char(dest, src) {
 for (let n = 0; n <= 0xff; ++n) {
     byteToHex[n] = n.toString(16).padStart(2, "0");
 }
-var encoded_buffer_file = [];
 
 function hexStringToArrayBuffer(pos, hexString) {
     // remove the space
@@ -49,17 +48,17 @@ function hex(arrayBuffer, is_without_space) {
     return hexOctets.join(is_without_space ? "" : " ");
 }
 var saveDataBuffer = (function () {
-    var a = document.createElement('a'); // Tambahkan definisi elemen anchor
-    a.style.display = "none"; // Perbaiki dari a.stye ke a.style
-    document.body.appendChild(a); // Tambahkan ke DOM
+    var a = document.createElement('a');
+    a.style = "display: none";
+    document.body.appendChild(a);
     
-    /**
-     * @param {ArrayBuffer} data
-     * @param {string} fileName
-     */
     return function (data, fileName) {
-        var blob = new Blob([new Uint8Array(data)], { type: "octet/stream" }),
-            url = window.URL.createObjectURL(blob);
+        // Hanya menggunakan data yang valid (menghindari buffer kosong)
+        const actualLength = data.findIndex(val => val === undefined);
+        const validData = actualLength === -1 ? data : data.slice(0, actualLength);
+        
+        const blob = new Blob([new Uint8Array(validData)], { type: "octet/stream" });
+        const url = window.URL.createObjectURL(blob);
         a.href = url;
         a.download = fileName;
         a.click();
